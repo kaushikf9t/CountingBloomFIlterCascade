@@ -17,10 +17,13 @@ public class CascadingFilterWithCounters {
 
     private CascadingFilterWithCounters childFilter;
 
-    public CascadingFilterWithCounters(int numHashes, int numCounters) {
+    private int depth;
+
+    public CascadingFilterWithCounters(int numHashes, int numCounters, int depth) {
         this.numHashes = numHashes;
         this.numCounters = numCounters;
         this.hashFunctionsArray = CascadingFilterUtil.initHashFunctionsArray(numHashes);
+        this.depth = depth;
 
     }
 
@@ -52,7 +55,7 @@ public class CascadingFilterWithCounters {
         System.out.println(falsePositives.size());
 
         if(!falsePositives.isEmpty()) {
-            childFilter = new CascadingFilterWithCounters(numHashes, (this.numCounters-1000));
+            childFilter = new CascadingFilterWithCounters(numHashes, (this.numCounters-1000), this.depth+1);
             childFilter.countingBloomFilter = new int[this.numCounters - 1000];
             finalDepth = childFilter.initialize(falsePositives, entries, ++finalDepth);
 
@@ -73,19 +76,24 @@ public class CascadingFilterWithCounters {
         return true;
     }
 
-    private boolean performLookup(int element, int [] countingBloomFilter, int numCounters) {
-        if(!checkExistence(element, countingBloomFilter, numCounters)) {
-            //System.out.println("Returning false" + element);
+    private boolean performLookup(int element, CascadingFilterWithCounters filter, int numCounters) {
+        if(!checkExistence(element, filter.countingBloomFilter, numCounters)) {
             return false;
 
         } else {
-            //System.out.println("Element found continue looking " + element);
-            return performLookup(element, this.childFilter.countingBloomFilter, this.childFilter.numCounters);
+            //get access to the child bloom filter of the bloom filter I have
+            boolean result = performLookup(element, filter.childFilter, filter.childFilter.numCounters);
+            if(!result && filter.depth %2 == 0) {
+                return true;
+
+            } else {
+                return false;
+            }
         }
     }
 
     public boolean lookupElement(int element) {
-       return performLookup(element, this.countingBloomFilter, this.numCounters);
+       return performLookup(element, this, this.numCounters);
     }
 
 }

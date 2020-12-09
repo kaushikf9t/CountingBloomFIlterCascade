@@ -5,9 +5,9 @@ import java.util.Set;
  */
 public class CascadingFilterTest {
     public static void main(String[] args) {
-        CascadingFilterWithCounters filter = new CascadingFilterWithCounters(10, 10000);
-        Set<Integer> entries = CascadingFilterUtil.createRandomIntegerSet(1000);
-        Set<Integer> exclusions = CascadingFilterUtil.createRandomIntegerSet(5000);
+        CascadingFilterWithCounters filter = new CascadingFilterWithCounters(5, 10000,1);
+        Set<Integer> entries = CascadingFilterUtil.createRandomIntegerSet(3000);
+        Set<Integer> exclusions = CascadingFilterUtil.createRandomIntegerSet(10000);
         int finalDepth = filter.initialize(entries, exclusions, 1);
         System.out.println("Final Depth after eliminating false positives " + finalDepth);
 
@@ -20,6 +20,5 @@ public class CascadingFilterTest {
         }
 
         System.out.println("False Positive count "+falsePositiveCount);
-
     }
 }
